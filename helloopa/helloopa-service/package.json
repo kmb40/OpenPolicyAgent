@@ -4,10 +4,10 @@
     "description": "helloopa-service: Receives authorization requests, forwards to OPA.",
     "main": "app.js",
     "scripts": {
-      "start": "node app.js"
+        "start": "node app.js"
     },
     "dependencies": {
-      "axios": "^0.26.1",
-      "express": "~4.17.3"
+        "axios": "^1.7.9",
+        "express": "^4.21.2"
     }
-  }
+}

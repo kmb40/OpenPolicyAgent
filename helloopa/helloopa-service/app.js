@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const port = 80;
+const port = 3000;
 app.listen(port, () => {
     console.log("HelloOPA Service is running on port: " + port);
 });
