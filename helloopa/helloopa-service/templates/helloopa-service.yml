@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: HelloOPA Blog Cloudformation Network Template,
+            Deploy an ECS service using EC2 Launch Type, hosted in two public subnets, accessible via a public load balancer.
+            Creates the target group for load balancer, ECS Task Definition, ECS Service Definition
+
+## Parameters recieved from root stack.
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: helloopa-blog-cfn
+    Description: Unique prefix used for resources
+  ClusterName:
+    Type: String
+    Description: Cluster Name
+  ServiceName:
+    Type: String
+  DesiredCount:
+    Type: String
+  VPCId:
+    Type: String
+    Description: "VPC to place helloopa resources into, passed in as parameter from root stack as output from network stack"
+  PublicListener:
+    Type: String
+    Description: "Public Load Balancer Listener"
+  Path:
+    Type: String
+    Default: "*"
+    Description: A path on the public load balancer that this service should be connected to. Use * to send all load balancer traffic to this service.
+  HealthCheckPath:
+    Type: String
+    Default: /health
+    Description: Path to perform the healthcheck on each instance.
+  ImageUrl: # Container1: helloopa-service
+    Type: String
+    Description: The url of a docker image that will handle incoming traffic.
+  SidecarImageUrl: # Container2: opa-service
+    Type: String
+    Description: The url of the ECR image for the sidecar container that will handle traffic from primary container.
+  Role:
+    Type: String
+    Default: ""
+    Description: (Optional) An IAM role to give the services containers if the code within needs to access other AWS resources like S3 buckets, DynamoDB tables, etc
+
+Conditions:
+  HasCustomRole: !Not [ !Equals [!Ref 'Role', ''] ]
+
+Resources:
+  ## ECS Resources
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub ${EnvironmentName}-service-${ServiceName}
+      RetentionInDays: 1
+  # Task Definition to deploy Main and Sidecar Containers
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref 'ServiceName'
+      Cpu: 1024
+      Memory: 1024
+      NetworkMode: "host" # important to ensure containers can communicate with one another in same host
+      TaskRoleArn:
+        Fn::If:
+          - 'HasCustomRole'
+          - !Ref 'Role'
+          - !Ref "AWS::NoValue"
+      ContainerDefinitions:
+        - Name: 'helloopa-service'
+          Image: !Ref 'ImageUrl'
+          Cpu: 512
+          Memory: 512
+          PortMappings:
+            - ContainerPort: 80
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: !Sub ${EnvironmentName}-service-${ServiceName}
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: !Ref 'ServiceName'
+        - Name: 'opa-service-sidecar'
+          Image: !Ref 'SidecarImageUrl'
+          Cpu: 512
+          Memory: 512
+          PortMappings:
+            - ContainerPort: 8181
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: !Sub ${EnvironmentName}-service-${ServiceName}
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: !Ref 'ServiceName'
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerRule
+    Properties:
+      ServiceName: !Ref 'ServiceName'
+      Cluster: !Ref ClusterName
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: !Ref 'DesiredCount'
+      TaskDefinition: !Ref 'TaskDefinition'
+      LoadBalancers:
+        - ContainerName: 'helloopa-service'
+          ContainerPort: 80
+          TargetGroupArn: !Ref 'TargetGroup'
+  
+  ## Load Balancer Resources
+  # Creates target group pointing to the running ECS service, sets port and healthcheck path.
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: !Ref HealthCheckPath
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Name: !Ref 'ServiceName'
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref 'VPCId'
+
+  # Create a rule updating the load balancer to route traffic to TargetGroup instead of DummyTargetGroup
+  LoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'TargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: [!Ref 'Path']
+      ListenerArn: !Ref PublicListener
+      Priority: 1
+YAML

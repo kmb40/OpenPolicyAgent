@@ -1,0 +1,7 @@
+{
+    "GroupPermissions":{ 
+      "file1":["Guest", "Dev", "Admin"],
+      "file2":["Dev", "Admin"],
+      "file_secret":["Admin"]
+    }
+  }
