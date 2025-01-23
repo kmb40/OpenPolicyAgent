@@ -9,6 +9,10 @@ Tools -
 * AWS CLI
 * Docker
 
+Dependicies - 
+* Axios JS - library for making http request from browser and node environments.
+* express JS - framework for building web apps.
+
 Services - 
 * Open Policy Agent (OPA)
 * Amazon Elastic Container Service (ECS)
