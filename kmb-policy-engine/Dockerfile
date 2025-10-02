@@ -8,8 +8,8 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx/nginx.conf /etc/nginx/conf.d/
 
 # Copy your website files into the Nginx web root directory.
-# COPY html /usr/share/nginx/html
-COPY html /opt/homebrew/var/www
+COPY html /usr/share/nginx/html
+# COPY html /opt/homebrew/var/www
 
 # Expose port 80 to the host machine.
 EXPOSE 80
