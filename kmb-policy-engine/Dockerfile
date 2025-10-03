@@ -16,7 +16,8 @@ EXPOSE 80
 
 # COPY ./index.html /usr/share/nginx/html/index.html
 COPY ./index.html /opt/homebrew/var/www/index.html
-COPY ./nginx.conf /etc/nginx/nginx.conf   # Optional, if you customize config
+# Optional, if you customize config
+COPY ./nginx.conf /opt/homebrew/etc/nginx/nginx.conf   
 
 # Copy the entire kmb-policy-engine directory to the web root
 # COPY ./kmb-policy-engine/ /usr/share/nginx/html/
