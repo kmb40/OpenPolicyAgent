@@ -7,17 +7,17 @@ FROM nginx:latest
 # Copy your custom nginx.conf file into the container.
 # COPY nginx/nginx.conf /etc/nginx/conf.d/
 
-# Copy your website files into the Nginx web root directory.
-# COPY html /usr/share/nginx/html
+# Copy your website files into the Containerized Nginx web root directory.
+COPY html /usr/share/nginx/html
 # COPY html /opt/homebrew/var/www
 
 # Expose port 80 to the host machine.
-EXPOSE 80
+# EXPOSE 80
 
 # COPY ./index.html /usr/share/nginx/html/index.html
-COPY html/index.html /opt/homebrew/var/www/index.html
+# COPY html /opt/homebrew/var/www/index.html
 # Optional, if you customize config
-COPY nginx/nginx.conf /opt/homebrew/etc/nginx/nginx.conf   
+# COPY nginx/nginx.conf /opt/homebrew/etc/nginx/nginx.conf   
 
 # Copy the entire kmb-policy-engine directory to the web root
 # COPY ./ /usr/share/nginx/html/
