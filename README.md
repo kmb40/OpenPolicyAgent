@@ -24,8 +24,8 @@ Execution -
 
 Reference - https://aws.amazon.com/blogs/opensource/deploying-open-policy-agent-opa-as-a-sidecar-on-amazon-elastic-container-service-amazon-ecs/ 
 
-10.7.25
-###Note: Steps to use when the infratrucure has already be setup.
+### 10.7.25
+### Note: Steps to use when the infratrucure has already be setup.
 If AWS ClI isnt installed, see - https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
 1. Primary container (web service)
